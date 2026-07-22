@@ -15,13 +15,14 @@ const spaceGrotesk = Space_Grotesk({
   variable: '--font-space-grotesk',
 })
 
-const siteUrl = 'https://santhosh-r.vercel.app'
+const siteUrl = 'https://santhosh-r-portfolio-three.vercel.app'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: 'Santhosh R | Full Stack Developer Portfolio',
   description:
     'Computer Science Engineering student specializing in Full Stack Development, Java, Backend Development, and AI Applications.',
+
   keywords: [
     'Santhosh R',
     'Full Stack Developer',
@@ -32,9 +33,16 @@ export const metadata: Metadata = {
     'React',
     'Node.js',
   ],
+
   authors: [{ name: 'Santhosh R' }],
   creator: 'Santhosh R',
   generator: 'v0.app',
+
+  // 👇 Google Search Console verification inga add pannunga
+  verification: {
+    google: 'vBLQq-i9RApGYLhYUFfFWSassVvP8LKpz2a-LA2Ra0s',
+  },
+
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -44,6 +52,7 @@ export const metadata: Metadata = {
       'Computer Science Engineering student specializing in Full Stack Development, Java, Backend Development, and AI Applications.',
     siteName: 'Santhosh R Portfolio',
   },
+
   twitter: {
     card: 'summary_large_image',
     title: 'Santhosh R | Full Stack Developer Portfolio',
@@ -51,6 +60,7 @@ export const metadata: Metadata = {
       'Computer Science Engineering student specializing in Full Stack Development, Java, Backend Development, and AI Applications.',
     creator: '@santhoshr',
   },
+
   robots: {
     index: true,
     follow: true,
