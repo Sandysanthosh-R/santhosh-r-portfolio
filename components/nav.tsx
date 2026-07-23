@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { NAV_LINKS } from '@/lib/data'
 import { cn } from '@/lib/utils'
@@ -9,6 +9,12 @@ export function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const [activeSection, setActiveSection] = useState<string>('')
+  const [indicatorStyle, setIndicatorStyle] = useState({
+    left: 0,
+    width: 0,
+    opacity: 0,
+  })
+  const navListRef = useRef<HTMLUListElement>(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16)
@@ -59,6 +65,33 @@ export function Nav() {
     return () => window.removeEventListener('scroll', handleSpy)
   }, [])
 
+  useEffect(() => {
+    const updateIndicator = () => {
+      if (!navListRef.current || !activeSection) {
+        setIndicatorStyle((prev) => ({ ...prev, opacity: 0 }))
+        return
+      }
+
+      const activeEl = navListRef.current.querySelector<HTMLElement>(
+        `[data-section="${activeSection}"]`,
+      )
+
+      if (activeEl) {
+        setIndicatorStyle({
+          left: activeEl.offsetLeft,
+          width: activeEl.offsetWidth,
+          opacity: 1,
+        })
+      } else {
+        setIndicatorStyle((prev) => ({ ...prev, opacity: 0 }))
+      }
+    }
+
+    updateIndicator()
+    window.addEventListener('resize', updateIndicator)
+    return () => window.removeEventListener('resize', updateIndicator)
+  }, [activeSection])
+
   return (
     <header
       className={cn(
@@ -74,40 +107,53 @@ export function Nav() {
       >
         <a
           href="#top"
+          onClick={() => setActiveSection('')}
           className="font-display text-lg font-bold tracking-tight text-foreground"
         >
           SANTHOSH R <span className="text-primary">.</span>
         </a>
 
-        <ul className="hidden items-center gap-8 md:flex">
+        <ul
+          ref={navListRef}
+          className="relative hidden items-center gap-8 py-2 md:flex"
+        >
           {NAV_LINKS.map((link) => {
             const sectionId = link.href.replace('#', '')
             const isActive = activeSection === sectionId
 
             return (
-              <li key={link.href} className="relative py-2">
+              <li key={link.href}>
                 <a
                   href={link.href}
+                  data-section={sectionId}
+                  onClick={() => setActiveSection(sectionId)}
                   className={cn(
                     'relative inline-block py-1 text-sm font-medium transition-colors hover:text-foreground',
-                    isActive ? 'font-semibold text-foreground' : 'text-muted-foreground',
+                    isActive
+                      ? 'font-semibold text-foreground'
+                      : 'text-muted-foreground',
                   )}
                 >
                   {link.label}
-                  {isActive && (
-                    <span
-                      className="absolute bottom-0 left-0 h-[2.5px] w-full rounded-full bg-primary transition-all duration-300"
-                      aria-hidden="true"
-                    />
-                  )}
                 </a>
               </li>
             )
           })}
+
+          <span
+            className="pointer-events-none absolute bottom-1 h-[2.5px] rounded-full bg-primary transition-all duration-300 ease-out"
+            style={{
+              left: `${indicatorStyle.left}px`,
+              width: `${indicatorStyle.width}px`,
+              opacity: indicatorStyle.opacity,
+            }}
+            aria-hidden="true"
+          />
         </ul>
 
         <a
           href="#contact"
+          onClick={() => setActiveSection('contact')}
           className="hidden rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-colors hover:bg-primary md:inline-flex"
         >
           Get in touch
@@ -125,12 +171,7 @@ export function Nav() {
       </nav>
 
       {/* Mobile menu */}
-      <div
-        className={cn(
-          'md:hidden',
-          open ? 'block' : 'hidden',
-        )}
-      >
+      <div className={cn('md:hidden', open ? 'block' : 'hidden')}>
         <div className="border-t border-border bg-background px-5 pb-8 pt-4">
           <ul className="flex flex-col gap-1">
             {NAV_LINKS.map((link) => {
@@ -141,7 +182,10 @@ export function Nav() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      setActiveSection(sectionId)
+                      setOpen(false)
+                    }}
                     className={cn(
                       'block rounded-md px-3 py-3 text-base font-medium transition-colors',
                       isActive
@@ -157,7 +201,10 @@ export function Nav() {
           </ul>
           <a
             href="#contact"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setActiveSection('contact')
+              setOpen(false)
+            }}
             className="mt-4 flex w-full items-center justify-center rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background"
           >
             Get in touch
@@ -167,4 +214,5 @@ export function Nav() {
     </header>
   )
 }
+
 
