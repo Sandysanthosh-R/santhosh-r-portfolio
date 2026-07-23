@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { Menu, X } from 'lucide-react'
-import { NAV_LINKS, SITE } from '@/lib/data'
+import { NAV_LINKS } from '@/lib/data'
 import { cn } from '@/lib/utils'
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState<string>('')
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16)
@@ -22,6 +23,41 @@ export function Nav() {
       document.body.style.overflow = ''
     }
   }, [open])
+
+  useEffect(() => {
+    const sectionIds = NAV_LINKS.map((link) => link.href.replace('#', ''))
+
+    const handleSpy = () => {
+      const scrollPosition = window.scrollY + 140
+
+      // Check if near bottom of page
+      if (
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 60
+      ) {
+        setActiveSection(sectionIds[sectionIds.length - 1])
+        return
+      }
+
+      let current = ''
+      for (const id of sectionIds) {
+        const el = document.getElementById(id)
+        if (el) {
+          const top = el.offsetTop
+          const height = el.offsetHeight
+          if (scrollPosition >= top && scrollPosition < top + height) {
+            current = id
+            break
+          }
+        }
+      }
+      setActiveSection(current)
+    }
+
+    handleSpy()
+    window.addEventListener('scroll', handleSpy, { passive: true })
+    return () => window.removeEventListener('scroll', handleSpy)
+  }, [])
 
   return (
     <header
@@ -44,16 +80,30 @@ export function Nav() {
         </a>
 
         <ul className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map((link) => (
-            <li key={link.href}>
-              <a
-                href={link.href}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
+          {NAV_LINKS.map((link) => {
+            const sectionId = link.href.replace('#', '')
+            const isActive = activeSection === sectionId
+
+            return (
+              <li key={link.href} className="relative py-2">
+                <a
+                  href={link.href}
+                  className={cn(
+                    'relative inline-block py-1 text-sm font-medium transition-colors hover:text-foreground',
+                    isActive ? 'font-semibold text-foreground' : 'text-muted-foreground',
+                  )}
+                >
+                  {link.label}
+                  {isActive && (
+                    <span
+                      className="absolute bottom-0 left-0 h-[2.5px] w-full rounded-full bg-primary transition-all duration-300"
+                      aria-hidden="true"
+                    />
+                  )}
+                </a>
+              </li>
+            )
+          })}
         </ul>
 
         <a
@@ -83,17 +133,27 @@ export function Nav() {
       >
         <div className="border-t border-border bg-background px-5 pb-8 pt-4">
           <ul className="flex flex-col gap-1">
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                <a
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className="block rounded-md px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted"
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const sectionId = link.href.replace('#', '')
+              const isActive = activeSection === sectionId
+
+              return (
+                <li key={link.href}>
+                  <a
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      'block rounded-md px-3 py-3 text-base font-medium transition-colors',
+                      isActive
+                        ? 'border-l-4 border-primary bg-muted pl-4 font-semibold text-primary'
+                        : 'text-foreground hover:bg-muted',
+                    )}
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              )
+            })}
           </ul>
           <a
             href="#contact"
@@ -107,3 +167,4 @@ export function Nav() {
     </header>
   )
 }
+
