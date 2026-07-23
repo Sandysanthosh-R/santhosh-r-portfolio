@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Menu, X } from 'lucide-react'
+import { Menu, Moon, Sun, X } from 'lucide-react'
 import { NAV_LINKS } from '@/lib/data'
 import { cn } from '@/lib/utils'
 
@@ -9,12 +9,32 @@ export function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const [activeSection, setActiveSection] = useState<string>('')
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [mounted, setMounted] = useState(false)
   const [indicatorStyle, setIndicatorStyle] = useState({
     left: 0,
     width: 0,
     opacity: 0,
   })
   const navListRef = useRef<HTMLUListElement>(null)
+
+  useEffect(() => {
+    setMounted(true)
+    const isDark = document.documentElement.classList.contains('dark')
+    setTheme(isDark ? 'dark' : 'light')
+  }, [])
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light'
+    setTheme(nextTheme)
+    if (nextTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16)
@@ -151,23 +171,57 @@ export function Nav() {
           />
         </ul>
 
-        <a
-          href="#contact"
-          onClick={() => setActiveSection('contact')}
-          className="hidden rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-colors hover:bg-primary md:inline-flex"
-        >
-          Get in touch
-        </a>
+        {/* Right side container: Get in touch button + Theme Toggle */}
+        <div className="hidden items-center gap-3 md:flex">
+          <a
+            href="#contact"
+            onClick={() => setActiveSection('contact')}
+            className="rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition-colors hover:bg-primary hover:text-primary-foreground"
+          >
+            Get in touch
+          </a>
 
-        <button
-          type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-foreground md:hidden"
-          onClick={() => setOpen((v) => !v)}
-          aria-label={open ? 'Close menu' : 'Open menu'}
-          aria-expanded={open}
-        >
-          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition-all hover:bg-muted active:scale-95"
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {mounted && theme === 'dark' ? (
+              <Sun className="h-4 w-4 text-yellow-400" />
+            ) : (
+              <Moon className="h-4 w-4 text-foreground" />
+            )}
+          </button>
+        </div>
+
+        {/* Mobile action controls */}
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition-all hover:bg-muted active:scale-95"
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {mounted && theme === 'dark' ? (
+              <Sun className="h-4 w-4 text-yellow-400" />
+            ) : (
+              <Moon className="h-4 w-4 text-foreground" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md text-foreground"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
+          >
+            {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile menu */}
